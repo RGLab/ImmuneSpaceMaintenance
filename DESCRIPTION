@@ -1,0 +1,27 @@
+Package: ImmuneSpaceMaintenance
+Title: Utility Package for ImmuneSpace Maintenance
+Version: 0.0.0.9000
+Authors@R:
+    person("ImmuneSpace Maintainer",
+           email = "immunespace@gmail.com",
+           role = c("cre", "cph"))
+Description: Utility Package for ImmuneSpace Maintenance.
+URL: https://github.com/RGLab/ImmuneSpaceR
+BugReports: https://github.com/RGLab/ImmuneSpaceR/issues
+Imports:
+  ImmuneSpaceR,
+  Rlabkey,
+  rjson,
+  parallel,
+  httr
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+Collate: 
+    'ISM.R'
+    'ISM-checkExpressionSet.R'
+    'ISM-checkRawFiles.R'
+    'ISM-checkStudyCompliance.R'
+    'ISM-removeOrphanGEMs.R'
+    'ISM-utils.R'
