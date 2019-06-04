@@ -29,7 +29,6 @@ if (check_type == "checkStudyCompliance") {
     )
   }
 } else if (check_type == "checkRawFiles" & file_type != "") {
-  file_type <- Sys.getenv("file_type")
   msg <- testthat::capture_messages(
     res <- con$checkRawFiles(file_type, mc.cores = parallel::detectCores())
   )
