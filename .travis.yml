@@ -17,7 +17,7 @@ env:
 
 script:
 - Rscript -e "devtools::install()"
-- Rscript check.R
+- travis_wait 40 Rscript check.R
 
 notifications:
   email: false
