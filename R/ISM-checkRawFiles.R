@@ -118,7 +118,8 @@ ISM$set(
       )
 
       endTime <- Sys.time()
-      print(endTime - startTime)
+      diff <- endTime - startTime
+      message(diff, " ", attributes(diff)$units)
     }
 
     if ("fcs_sample_files" %in% what) {
@@ -130,7 +131,8 @@ ISM$set(
       )
 
       endTime <- Sys.time()
-      print(endTime - startTime)
+      diff <- endTime - startTime
+      message(diff, " ", attributes(diff)$units)
     }
 
     if ("fcs_control_files" %in% what) {
@@ -142,7 +144,8 @@ ISM$set(
       )
 
       endTime <- Sys.time()
-      print(endTime - startTime)
+      diff <- endTime - startTime
+      message(diff, " ", attributes(diff)$units)
     }
 
     if ("protocols" %in% what) {
@@ -187,7 +190,8 @@ ISM$set(
       )
 
       endTime <- Sys.time()
-      print(endTime - startTime)
+      diff <- endTime - startTime
+      message(diff, " ", attributes(diff)$units)
     }
 
     if ("gene_expression_matrices" %in% what) {
@@ -240,13 +244,15 @@ ISM$set(
       }
 
       endTime <- Sys.time()
-      print(endTime - startTime)
+      diff <- endTime - startTime
+      message(diff, " ", attributes(diff)$units)
     }
 
     endTimeTotal <- Sys.time()
-    print("===========")
-    print("TOTAL TIME:")
-    print(endTimeTotal - startTimeTotal)
+    message("===========")
+    message("TOTAL TIME:")
+    totalDiff <- endTimeTotal - startTimeTotal
+    message(totalDiff, " ", attributes(totalDiff)$units)
 
     ret
   }

@@ -12,6 +12,10 @@ r_packages:
 env:
 - ISR_machine=www.immunespace.org
 - ISR_machine=test.immunespace.org
+- check_type=checkStudyCompliance
+- check_type=checkRawFiles file_type=protocols
+- check_type=checkRawFiles file_type=gene_expression_matrices
+- check_type=checkRawFiles file_type=gene_expression_files
 
 script:
 - Rscript -e "devtools::install()"

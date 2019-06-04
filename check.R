@@ -4,20 +4,39 @@ suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
 labkey.url.base <- ImmuneSpaceR:::.get_env_url()
 
+check_type <- Sys.getenv("check_type")
+file_type <- Sys.getenv("file_type")
+
 con <- ISM$new("")
-msg <- testthat::capture_messages(res <- con$checkStudyCompliance())
 
-if (length(res) > 0) {
-  dt <- data.table::as.data.table(do.call(rbind, res))
-  dt[, study := names(res)]
-  data.table::setcolorder(dt, c("study", "modules"))
-  dt
-
-  stop(
-    "\n",
-    length(res), " studies are not compliant: ",
-    paste(names(res), collapse = ", "),
-    "\n",
-    msg
+if (check_type == "checkStudyCompliance") {
+  msg <- testthat::capture_messages(
+    res <- con$checkStudyCompliance()
   )
+
+  if (length(res) > 0) {
+    dt <- data.table::as.data.table(do.call(rbind, res))
+    dt[, study := names(res)]
+    data.table::setcolorder(dt, c("study", "modules"))
+    print(dt)
+
+    stop(
+      "\n",
+      length(res), " studies are not compliant: ",
+      paste(names(res), collapse = ", "),
+      "\n",
+      msg
+    )
+  }
+} else if (check_type == "checkRawFiles" & file_type != "") {
+  file_type <- Sys.getenv("file_type")
+  msg <- testthat::capture_messages(
+    res <- con$checkRawFiles(file_type, mc.cores = parallel::detectCores())
+  )
+  res <- res[[file_type]]
+
+  if (sum(!res$file_exists) > 0) {
+    print(res[!res$file_exists, c("study_accession", "file_info_name")])
+    stop(msg[1])
+  }
 }
