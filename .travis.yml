@@ -5,7 +5,9 @@ cache: packages
 r: bioc-release
 os: osx
 
-r_packages: devtools
+r_packages:
+  - devtools
+  - testthat
 
 script:
   - Rscript -e "devtools::install()"
