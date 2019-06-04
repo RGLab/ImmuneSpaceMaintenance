@@ -10,10 +10,10 @@ r_packages:
 - testthat
 
 env:
-- check_type=checkStudyCompliance
-- check_type=checkRawFiles file_type=protocols
-- check_type=checkRawFiles file_type=gene_expression_matrices
-- check_type=checkRawFiles file_type=gene_expression_files
+- CHECK=checkStudyCompliance
+- CHECK=checkRawFiles FILE=protocols
+- CHECK=checkRawFiles FILE=gene_expression_matrices
+- CHECK=checkRawFiles FILE=gene_expression_files
 
 script:
 - Rscript -e "devtools::install()"

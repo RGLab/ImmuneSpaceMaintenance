@@ -4,8 +4,8 @@ suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
 labkey.url.base <- ImmuneSpaceR:::.get_env_url()
 
-check_type <- Sys.getenv("check_type")
-file_type <- Sys.getenv("file_type")
+check_type <- Sys.getenv("CHECK")
+file_type <- Sys.getenv("FILE")
 
 con <- ISM$new("")
 
@@ -18,7 +18,7 @@ if (check_type == "checkStudyCompliance") {
     dt <- data.table::as.data.table(do.call(rbind, res))
     dt[, study := names(res)]
     data.table::setcolorder(dt, c("study", "modules"))
-    print(dt)
+    print(dt[])
 
     stop(
       "\n",
