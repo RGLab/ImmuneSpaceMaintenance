@@ -270,7 +270,7 @@ ISM$set(
       ret <- FALSE
     } else {
       if (http_type(res) == "application/json") {
-        res <- GET(url, config = opts)
+        res <- httr::GET(url, config = opts)
         cont <- httr::content(res)
         ret <- is.null(cont$exception)
       } else {
