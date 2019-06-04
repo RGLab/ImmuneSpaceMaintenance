@@ -10,6 +10,8 @@ URL: https://github.com/RGLab/ImmuneSpaceR
 BugReports: https://github.com/RGLab/ImmuneSpaceR/issues
 Imports:
   ImmuneSpaceR,
+  R6,
+  data.table,
   Rlabkey,
   rjson,
   parallel,
