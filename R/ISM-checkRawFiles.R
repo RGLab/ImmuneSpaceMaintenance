@@ -265,11 +265,18 @@ ISM$set(
   which = "public",
   name = "generateRawFilesCmd",
   value = function(rawFilesOutput) {
-    sdys <- lapply(rawFilesOutput, function(x){ return(unique(x$study_accession)) })
+    sdys <- lapply(rawFilesOutput, function(x){
+      x <- x[!x$file_exists,]
+      return(unique(x$study_accession))
+    })
     toDLstr <- paste(unique(unlist(sdys)), collapse = " ")
-    toDLstr <- paste("./getRawFiles.sh -sv ", toDLstr)
-
-    return(toDLstr)
+    if(toDLstr == ""){
+      message("No missing files")
+      return()
+    }else{
+      toDLstr <- paste("./getRawFiles.sh -sv ", toDLstr)
+      return(toDLstr)
+    }
   }
 )
 
