@@ -1,0 +1,3 @@
+# to initialize an ISM connection
+library(ImmuneSpaceMaintenance)
+con <- ISM$new(study = "", onTest = TRUE)
