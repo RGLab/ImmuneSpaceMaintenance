@@ -284,6 +284,7 @@ ISM$set(
 # data copied over from ImmPort to Study via Immport Module "Copy Dataset"
 # and data that has been changed in Immport that should be investigated
 # prior to copying over.
+#' @importFrom Rlabkey makeFilter
 ISM$set(
   which = "public",
   name = "comparePublicVsStudySchema",
