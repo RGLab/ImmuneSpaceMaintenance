@@ -14,6 +14,10 @@ if (check_type == "checkStudyCompliance") {
     res <- con$checkStudyCompliance()
   )
 
+  # Remove studies with known GEM issues that are not fixable at the moment
+  badGE <- c("SDY1092", "SDY74", "SDY820", "SDY1361", "SDY520", "SDY789")
+  res <- res[ !names(res) %in% badGE ]
+
   if (length(res) > 0) {
     dt <- data.table::as.data.table(do.call(rbind, res))
     dt[, study := names(res)]
