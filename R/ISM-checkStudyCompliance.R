@@ -46,13 +46,13 @@ ISM$set(
 
       # Prepare list of columns included in the table from Modules and Gene-Expression work
       mods <- c(
-        # Gene Expression Data columns
+        # ---- Gene Expression Data ----
         "GEF", # Gene Expression Files query for meta-data
         "RAW", # Raw data on RServe filesystem and imported from ImmPort
         "GEO", # Raw data in Gene Expression Omnibus Dbase
         "GEM_implied", # Gene Expression Matrix
-        "GEM_actual", #
-        # Modules
+        "GEM_actual",
+        # ---- Modules ----
         "DE_implied", # Data Explorer
         "DE_actual",
         "GEE_implied", # Gene Expression Explorer
@@ -175,9 +175,9 @@ ISM$set(
       resp <- immuneResponse[, list(study_time_collected,
                                     study_time_collected_unit,
                                     response = value_preferred / mean(value_preferred[study_time_collected <= 0], na.rm = TRUE)
-      ),
-      by = "virus,participant_id"
-      ]
+                                    ),
+                                by = "virus,participant_id"
+                             ]
       resp <- resp[ !is.na(response) ]
 
       # NOTE: At least SDY180 has overlapping study_time_collected for both hours and days
@@ -189,11 +189,11 @@ ISM$set(
       # Subset to only samples from studies where there is data from multiple cohorts at
       # a given timepoint
       geCohortSubs <- geCohortSubs[, .SD[length(unique(cohort)) > 1],
-                                   by = .(study, study_time_collected, study_time_collected_unit)
+                                     by = .(study, study_time_collected, study_time_collected_unit)
                                    ]
       # Subset to only samples where there is baseline data and data from other timepoints
       geCohortSubs <- geCohortSubs[, .SD[length(unique(study_time_collected)) > 1 & 0 %in% unique(study_time_collected)],
-                                   by = .(study, cohort, study_time_collected_unit)
+                                     by = .(study, cohort, study_time_collected_unit)
                                    ]
       compDF$IRP_implied <- rownames(compDF) %in% unique(geCohortSubs$study)
 
@@ -201,10 +201,9 @@ ISM$set(
       # TODO:  Change to "IRP_missing" to be consistent, and only include when noncompliant (or missing?)
       # TODO:  Determine if this field is necessary
       studyTimepoints <- geCohortSubs[, list(timepoints = paste(sort(unique(study_time_collected)),
-                                                                collapse = ","
-      )),
-      by = .(study)
-      ]
+                                                                collapse = ",")),
+                                        by = .(study)
+                                      ]
       compDF$IrpTimepoints <- studyTimepoints$timepoints[ match(rownames(compDF), studyTimepoints$study) ]
 
       # DGEA - Differential Expression Analysis
@@ -245,7 +244,9 @@ ISM$set(
 
         # 1. Remove all arm_name * study_time_collected with less than 4 replicates
         # otherwise predictive modeling cannot work
-        impliedGEA[, subs := length(unique(participantid)), by = .(cohort, study_time_collected, study_time_collected_unit)]
+        impliedGEA[, subs := length(unique(participantid)),
+                     by = .(cohort, study_time_collected, study_time_collected_unit)
+                   ]
         impliedGEA <- impliedGEA[ subs > 3 ]
 
         # 2. Check for baseline within each arm_name and then filter out baseline
@@ -258,7 +259,9 @@ ISM$set(
         impliedGEA[, key := paste(cohort_type, study_time_collected, study_time_collected_unit)]
 
         # 4. Summarize by arm_name * study_time_collected for number of subs and key
-        smryGEA <- impliedGEA[, list(key = unique(key), subs = unique(subs)), by = .(cohort_type, study_time_collected, study_time_collected_unit)]
+        smryGEA <- impliedGEA[, list(key = unique(key), subs = unique(subs)),
+                                by = .(cohort_type, study_time_collected, study_time_collected_unit)
+                              ]
 
         # -------------------------------------------
 
