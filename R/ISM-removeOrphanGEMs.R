@@ -58,7 +58,7 @@ ISM$set(
       }
 
       noRunPresPost <- private$.getNoRunPres(runs)
-      if (length(noRunpresPost) == 0) {
+      if (length(noRunPresPost) == 0) {
         return("No orphans found after removal. Success!")
       } else {
         print("Problems Occurred. Remaining Files with No Runs Present")
