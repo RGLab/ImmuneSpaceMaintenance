@@ -346,7 +346,6 @@ ISM$set(
   name = ".checkUrl",
   value = function(url) {
     opts <- self$config$curlOptions
-    opts$options$netrc <- 1L
 
     res <- HEAD(url, config = opts)
 
