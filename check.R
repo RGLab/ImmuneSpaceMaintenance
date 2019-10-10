@@ -6,6 +6,7 @@ labkey.url.base <- ImmuneSpaceR:::.get_env_url()
 
 check_type <- Sys.getenv("CHECK")
 file_type <- Sys.getenv("FILE")
+batch <- Sys.getenv("BATCH")
 
 con <- ISM$new("")
 
@@ -41,7 +42,9 @@ if (check_type == "checkStudyCompliance") {
   }
 } else if (check_type == "checkRawFiles" & file_type != "") {
   msg <- testthat::capture_messages(
-    res <- con$checkRawFiles(file_type, mc.cores = parallel::detectCores())
+    res <- con$checkRawFiles(file_type = file_type,
+                             mc.cores = parallel::detectCores(),
+                             batch = batch)
   )
   res <- res[[file_type]]
 

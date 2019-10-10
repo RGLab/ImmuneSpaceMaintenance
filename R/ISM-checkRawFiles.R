@@ -14,29 +14,23 @@ NULL
 ISM$set(
   which = "public",
   name = "checkRawFiles",
-  value = function(what = c(
-    "gene_expression_files",
-    "fcs_sample_files",
-    "fcs_control_files",
-    "protocols",
-    "gene_expression_matrices"
-  ),
-  mc.cores = 1) {
-    ## HELPERS
-    ..messageResults <- function(dataset, file_exists) {
+  value = function(file_type, mc.cores = 1, batch = NULL) {
+
+    ## ------- HELPERS --------
+    ..messageResults <- function(file_type, file_exists) {
       message(
         paste0(
           sum(file_exists),
           "/",
           length(file_exists),
           " ",
-          dataset,
+          file_type,
           " with valid links."
         )
       )
     }
 
-    ..checkLinks <- function(dataset, folder) {
+    ..checkLinksRawFolder <- function(file_type, folder, batch = NULL) {
       res <- data.frame(
         file_info_name = NULL,
         study_accession = NULL,
@@ -45,10 +39,10 @@ ISM$set(
         stringsAsFactors = FALSE
       )
 
-      if (dataset %in% self$availableDatasets$Name) {
-        temp <- self$getDataset(dataset, original_view = TRUE)
+      if (file_type %in% self$availableDatasets$Name) {
+        temp <- self$getDataset(file_type, original_view = TRUE)
 
-        if (dataset == "fcs_control_files") {
+        if (file_type == "fcs_control_files") {
           temp <- temp[, file_info_name := control_file]
           temp <- temp[, c("pid", "sid") := data.table::tstrsplit(participant_id, "\\.")]
           temp <- temp[, study_accession := paste0("SDY", sid)]
@@ -56,6 +50,22 @@ ISM$set(
 
         temp <- temp[!is.na(file_info_name)]
         temp <- unique(temp[, list(study_accession, file_info_name)])
+
+        # Batch system created as TravisCI has 50 min limit per job
+        # but unlimited jobs. With increasing number of studies,
+        # FCS file checking > 50 min at project level.
+        # Assuming only 2 batches in this code
+        if(!is.null(batch)){
+          mid <- length(temp)/2
+          if(batch == 1){
+            start <- 1
+            end <- mid
+          }else{
+            start <- mid + 1
+            end <- length(temp)
+          }
+          temp <- temp[start:end]
+        }
 
         file_link <- paste0(
           self$config$labkey.url.base,
@@ -68,6 +78,7 @@ ISM$set(
         )
 
         studies <- unique(temp$study_accession)
+
         folder_link <- paste0(
           self$config$labkey.url.base,
           "/_webdav/Studies/",
@@ -94,81 +105,19 @@ ISM$set(
           file_exists = file_exists,
           stringsAsFactors = FALSE
         )
-
-        ..messageResults(dataset, res$file_exists)
       }
 
       res
     }
 
-
-    ## MAIN
-
-    startTimeTotal <- Sys.time()
-
-    ret <- list()
-    what <- tolower(what)
-
-    if ("gene_expression_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$gene_expression_files <- ..checkLinks(
-        "gene_expression_files",
-        "gene_expression"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("fcs_sample_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$fcs_sample_files <- ..checkLinks(
-        "fcs_sample_files",
-        "flow_cytometry"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("fcs_control_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$fcs_control_files <- ..checkLinks(
-        "fcs_control_files",
-        "flow_cytometry"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("protocols" %in% what) {
-      startTime <- Sys.time()
-
-      if (private$.isProject()) {
-        folders_list <- labkey.getFolders(
-          baseUrl = self$config$labkey.url.base,
-          folderPath = "/Studies/"
-        )
-        folders <- folders_list[, 1]
-        folders <- folders[!folders %in% c("SDY_template", "Studies")]
-      } else {
-        folders <- basename(self$config$labkey.url.path)
-      }
-
+    ..checkLinksOtherFolder <- function(folders, subdir, file_names){
       file_link <- paste0(
         self$config$labkey.url.base,
         "/_webdav/Studies/",
         folders,
-        "/%40files/protocols/",
-        folders,
-        "_protocol.zip"
+        "/%40files/",
+        subdir,
+        file_names
       )
 
       file_exists <- unlist(
@@ -179,83 +128,74 @@ ISM$set(
         )
       )
 
-      ..messageResults("protocols", file_exists)
-
-      ret$protocols <- data.frame(
-        file_info_name = paste0(folders, "_protocol.zip"),
+      res <- data.frame(
+        file_info_name = file_names,
         study_accession = folders,
         file_link = file_link,
         file_exists = file_exists,
         stringsAsFactors = FALSE
       )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
     }
+    # -----------------------------
 
-    if ("gene_expression_matrices" %in% what) {
-      startTime <- Sys.time()
 
-      suppressWarnings(
-        mx <- ImmuneSpaceR:::.getLKtbl(
-          con = self,
-          schema = "assay.ExpressionMatrix.matrix",
-          query = "Runs",
-          colNameOpt = "rname"
-        )
-      )
+    ## ------- MAIN ---------------
+    startTime <- Sys.time()
 
-      if (nrow(mx) > 0) {
-        mxLinks <- paste0(
-          self$config$labkey.url.base,
-          "/_webdav/Studies/",
-          mx$folder_name,
-          "/@files/analysis/exprs_matrices/",
-          mx$name,
-          ".tsv"
-        )
+    rawFolderData <- c("gene_expression_files", "fcs_sample_files", "fcs_control_files")
 
-        file_exists <- unlist(
-          mclapply(
-            mxLinks,
-            private$.checkUrl,
-            mc.cores = mc.cores
+    if (file_type %in% rawFolderData) {
+      folder <- ifelse(file_type == "gene_expression_files",
+                       "gene_expression",
+                       "flow_cytometry")
+      res <- ..checkLinksRawFolder(file_type, folder = folder)
+
+    } else {
+      if (file_type == "protocols") {
+        if (private$.isProject()) {
+          folders_list <- labkey.getFolders(
+            baseUrl = self$config$labkey.url.base,
+            folderPath = "/Studies/"
+          )
+          folders <- folders_list[, 1]
+          folders <- folders[!folders %in% c("SDY_template", "Studies")]
+        } else {
+          folders <- basename(self$config$labkey.url.path)
+        }
+
+        subdir <- "protocols/"
+        file_names <- paste0(folders, "_protocol.zip")
+
+      } else if (file_type == "gene_expression_matrices"){
+        suppressWarnings(
+          mx <- ImmuneSpaceR:::.getLKtbl(
+            con = self,
+            schema = "assay.ExpressionMatrix.matrix",
+            query = "Runs",
+            colNameOpt = "rname"
           )
         )
 
-        ..messageResults("gene_expression_matrices", file_exists)
-
-        ret$gene_expression_matrices <- data.frame(
-          file_info_name = paste0(mx$name, ".tsv"),
-          study_accession = mx$folder_name,
-          file_link = mxLinks,
-          file_exists = file_exists,
-          stringsAsFactors = FALSE
-        )
-      } else {
-        ret$gene_expression_matrices <- data.frame(
-          file_info_name = NULL,
-          study_accession = NULL,
-          file_link = NULL,
-          file_exists = NULL,
-          stringsAsFactors = FALSE
-        )
+        folders <- mx$folder_name
+        subdir <- "/analysis/exprs_matrices/"
+        file_names <- paste0(mx$name, ".tsv")
       }
 
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
+      res <- ..checkLinksOtherFolder(folders = folders,
+                                     subdir = subdir,
+                                     file_names = file_names)
     }
 
-    endTimeTotal <- Sys.time()
-    message("===========")
-    message("TOTAL TIME:")
-    totalDiff <- endTimeTotal - startTimeTotal
-    message(totalDiff, " ", attributes(totalDiff)$units)
+    ..messageResults(file_type = file_type,
+                     file_exists = res$file_exists)
 
-    ret
+    endTime <- Sys.time()
+    diff <- endTime - startTime
+    message(diff, " ", attributes(diff)$units)
+
+    res
   }
+  # --------------------------
 )
 
 # Returns a string that can be used as a shell command on RServe machines
