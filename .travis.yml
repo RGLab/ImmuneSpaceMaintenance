@@ -11,6 +11,7 @@ r_packages:
 
 env:
 - CHECK=checkStudyCompliance
+- CHECK=checkPublicVsStudySchema
 - CHECK=checkRawFiles FILE=protocols
 - CHECK=checkRawFiles FILE=gene_expression_matrices
 - CHECK=checkRawFiles FILE=gene_expression_files

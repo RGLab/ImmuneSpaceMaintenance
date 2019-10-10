@@ -40,6 +40,7 @@ if (check_type == "checkStudyCompliance") {
       msg
     )
   }
+
 } else if (check_type == "checkRawFiles" & file_type != "") {
   msg <- testthat::capture_messages(
     res <- con$checkRawFiles(file_type = file_type,
@@ -50,5 +51,14 @@ if (check_type == "checkStudyCompliance") {
   if (sum(!res$file_exists) > 0) {
     print(res[!res$file_exists, c("study_accession", "file_info_name")])
     stop(msg[1])
+  }
+
+} else if (check_type == "checkPublicVsStudySchema"){
+  msg <- testthat::capture_messages(
+    res <- con$checkPublicVsStudySchema()
+  )
+  if (any(lengths(res)) > 0){
+    res <- res[ lengths(res) > 0 ]
+    print(res)
   }
 }
