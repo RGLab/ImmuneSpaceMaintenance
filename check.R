@@ -46,7 +46,6 @@ if (check_type == "checkStudyCompliance") {
                              mc.cores = parallel::detectCores(),
                              batch = batch)
   )
-  res <- res[[file_type]]
 
   if (sum(!res$file_exists) > 0) {
     print(res[!res$file_exists, c("study_accession", "file_info_name")])
