@@ -14,7 +14,7 @@ NULL
 ISM$set(
   which = "public",
   name = "checkRawFiles",
-  value = function(file_type, mc.cores = 1, batch = NULL) {
+  value = function(file_type, mc.cores, batch) {
 
     ## ------- HELPERS --------
     ..messageResults <- function(file_type, file_exists) {
@@ -31,15 +31,6 @@ ISM$set(
     }
 
     ..checkLinksRawFolder <- function(file_type, folder, batch) {
-      res <- data.frame(
-        file_info_name = NULL,
-        study_accession = NULL,
-        file_link = NULL,
-        file_exists = NULL,
-        stringsAsFactors = FALSE
-      )
-
-      if (file_type %in% self$availableDatasets$Name) {
         temp <- self$getDataset(file_type, original_view = TRUE)
 
         if (file_type == "fcs_control_files") {
@@ -55,7 +46,7 @@ ISM$set(
         # but unlimited jobs. With increasing number of studies,
         # FCS file checking > 50 min at project level.
         # Assuming only 2 batches in this code
-        if(!is.null(batch)){
+        if(batch != ""){
           mid <- dim(temp)[1]/2
           initSdy <- currSdy <- temp$study_accession[mid]
           while(initSdy == currSdy){
@@ -79,7 +70,7 @@ ISM$set(
           "/%40files/rawdata/",
           folder,
           "/",
-          sapply(temp$file_info_name, URLencode)
+          URLencode(temp$file_info_name)
         )
 
         studies <- unique(temp$study_accession)
@@ -110,9 +101,6 @@ ISM$set(
           file_exists = file_exists,
           stringsAsFactors = FALSE
         )
-      }
-
-      res
     }
 
     ..checkLinksOtherFolder <- function(folders, subdir, file_names){

@@ -60,5 +60,6 @@ if (check_type == "checkStudyCompliance") {
   if (any(lengths(res)) > 0){
     res <- res[ lengths(res) > 0 ]
     print(res)
+    stop(msg)
   }
 }

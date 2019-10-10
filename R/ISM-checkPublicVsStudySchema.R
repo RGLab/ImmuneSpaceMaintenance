@@ -52,5 +52,11 @@ ISM$set(
     # return
     ret <- list(`In Public Not Study` = inPubNotPriv,
                 `In Study Not Public` = inPrivNotPub)
+
+    if( any(lengths(ret)) > 0){
+      message("Schema mismatches found. Check 'Publish to Study'.")
+    }
+
+    ret
   }
 )
