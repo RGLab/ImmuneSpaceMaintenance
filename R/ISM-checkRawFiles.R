@@ -30,7 +30,7 @@ ISM$set(
       )
     }
 
-    ..checkLinksRawFolder <- function(file_type, folder, batch = NULL) {
+    ..checkLinksRawFolder <- function(file_type, folder, batch) {
       res <- data.frame(
         file_info_name = NULL,
         study_accession = NULL,
@@ -56,15 +56,20 @@ ISM$set(
         # FCS file checking > 50 min at project level.
         # Assuming only 2 batches in this code
         if(!is.null(batch)){
-          mid <- length(temp)/2
+          mid <- dim(temp)[1]/2
+          initSdy <- currSdy <- temp$study_accession[mid]
+          while(initSdy == currSdy){
+            mid <- mid + 1
+            currSdy <- temp$study_accession[mid]
+          }
           if(batch == 1){
             start <- 1
             end <- mid
           }else{
             start <- mid + 1
-            end <- length(temp)
+            end <- dim(temp)[1]
           }
-          temp <- temp[start:end]
+          temp <- temp[start:end, ]
         }
 
         file_link <- paste0(
@@ -148,7 +153,9 @@ ISM$set(
       folder <- ifelse(file_type == "gene_expression_files",
                        "gene_expression",
                        "flow_cytometry")
-      res <- ..checkLinksRawFolder(file_type, folder = folder)
+      res <- ..checkLinksRawFolder(file_type = file_type,
+                                   folder = folder,
+                                   batch = batch)
 
     } else {
       if (file_type == "protocols") {
@@ -217,63 +224,6 @@ ISM$set(
       toDLstr <- paste("./getRawFiles.sh -sv ", toDLstr)
       return(toDLstr)
     }
-  }
-)
-
-# Compare immport.public and study schema to determine studies that should have
-# data copied over from ImmPort to Study via Immport Module "Copy Dataset"
-# and data that has been changed in Immport that should be investigated
-# prior to copying over.
-#' @importFrom Rlabkey makeFilter
-ISM$set(
-  which = "public",
-  name = "comparePublicVsStudySchema",
-  value = function() {
-    # Data from Immport schema (shown in study overview before login)
-    pub <- labkey.selectRows(baseUrl = con$config$labkey.url.base,
-                             folderPath = "/Studies/",
-                             schemaName = "immport.public",
-                             queryName = "dimstudyassay",
-                             colSelect = c("Study","Label"),
-                             colFilter = makeFilter(c("Categorylabel",
-                                                      "EQUAL",
-                                                      "Raw data files"
-                             ))
-    )
-
-    # Data in study schema (shown in study overview after login)
-    base <- "SELECT DISTINCT tmp.study_accession FROM tmp"
-
-    fcsSampleFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                        folderPath = "/Studies/",
-                                        schemaName = "study",
-                                        sql = gsub("tmp", "fcs_sample_files", base))
-    fcsSampleFiles$Label <- "FCS sample files"
-
-    fcsControlFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                         folderPath = "/Studies/",
-                                         schemaName = "study",
-                                         sql = gsub("tmp", "fcs_control_files", base))
-    fcsControlFiles$Label <- "FCS control files"
-
-    geFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                 folderPath = "/Studies/",
-                                 schemaName = "study",
-                                 sql = gsub("tmp", "gene_expression_files", base))
-    geFiles$Label <- "Gene expression microarray data files"
-
-    priv <- rbind(fcsControlFiles, fcsSampleFiles, geFiles)
-
-    # Comparing data sets
-    pub <- pub[ pub$Study %in% unique(priv$`Study Accession`), ]
-    pub$key <- paste(pub$Study, pub$Label)
-    priv$key <- paste(priv$`Study Accession`, priv$Label)
-    inPubNotPriv <- setdiff(pub$key, priv$key)
-    inPrivNotPub <- setdiff(priv$key, pub$key)
-
-    # return
-    ret <- list(`In Public Not Private` = inPubNotPriv,
-                `In Private Not Public` = inPrivNotPub)
   }
 )
 
