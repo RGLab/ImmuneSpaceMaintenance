@@ -17,8 +17,10 @@ env:
 - CHECK=checkRawFiles FILE=gene_expression_files
 - CHECK=checkRawFiles FILE=fcs_sample_files BATCH=1
 - CHECK=checkRawFiles FILE=fcs_sample_files BATCH=2
+- CHECK=checkRawFiles FILE=fcs_sample_files BATCH=3
 - CHECK=checkRawFiles FILE=fcs_control_files BATCH=1
 - CHECK=checkRawFiles FILE=fcs_control_files BATCH=2
+- CHECK=checkRawFiles FILE=fcs_control_files BATCH=3
 
 script:
 - Rscript -e "devtools::install()"
