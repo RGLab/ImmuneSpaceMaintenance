@@ -3,14 +3,11 @@
 language: R
 cache: packages
 r: bioc-release
-os: osx
+os: linux
 
 r_packages:
 - devtools
 - testthat
-
-r_binary_packages:
-- data.table
 
 env:
 - CHECK=checkStudyCompliance
