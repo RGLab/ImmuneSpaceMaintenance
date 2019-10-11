@@ -41,39 +41,16 @@ ISM$set(
 
         temp <- temp[!is.na(file_info_name)]
         temp <- unique(temp[, list(study_accession, file_info_name)])
+        studies <- unique(temp$study_accession)
 
         # Batch system created as TravisCI has 50 min limit per job
         # but unlimited jobs. With increasing number of studies,
         # FCS file checking > 50 min at project level.
         # Assuming only 2 batches in this code
         if(batch != ""){
-          mid <- dim(temp)[1]/2
-          initSdy <- currSdy <- temp$study_accession[mid]
-          while(initSdy == currSdy){
-            mid <- mid + 1
-            currSdy <- temp$study_accession[mid]
-          }
-          if(batch == 1){
-            start <- 1
-            end <- mid
-          }else{
-            start <- mid + 1
-            end <- dim(temp)[1]
-          }
-          temp <- temp[start:end, ]
+          studies <- split(studies, cut(seq_along(studies), 2, labels = FALSE))[[batch]]
+          temp <- temp[ temp$study_accession %in% studies, ]
         }
-
-        file_link <- paste0(
-          self$config$labkey.url.base,
-          "/_webdav/Studies/",
-          temp$study_accession,
-          "/%40files/rawdata/",
-          folder,
-          "/",
-          URLencode(temp$file_info_name)
-        )
-
-        studies <- unique(temp$study_accession)
 
         folder_link <- paste0(
           self$config$labkey.url.base,
