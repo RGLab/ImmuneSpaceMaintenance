@@ -44,12 +44,14 @@ if (check_type == "checkStudyCompliance") {
 } else if (check_type == "checkRawFiles" & file_type != "") {
   msg <- testthat::capture_messages(
     res <- con$checkRawFiles(file_type = file_type,
-                             mc.cores = parallel::detectCores(),
+                             mc.cores = 1, # > 1 cores generates errors
                              batch = batch)
   )
 
   if (sum(!res$file_exists) > 0) {
-    print(res[!res$file_exists, c("study_accession", "file_info_name")])
+    res <- res[!res$file_exists, c("study_accession", "file_info_name")]
+    res[ , list(files_missing = .N), by = study_accession]
+    print(res)
     stop(msg[1])
   }
 
