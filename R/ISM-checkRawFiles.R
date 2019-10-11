@@ -74,7 +74,6 @@ ISM$set(
         res <- data.frame(
           file_info_name = temp$file_info_name,
           study_accession = temp$study_accession,
-          file_link = file_link,
           file_exists = file_exists,
           stringsAsFactors = FALSE
         )
@@ -101,7 +100,6 @@ ISM$set(
       res <- data.frame(
         file_info_name = file_names,
         study_accession = folders,
-        file_link = file_link,
         file_exists = file_exists,
         stringsAsFactors = FALSE
       )
