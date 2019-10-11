@@ -5,9 +5,6 @@ cache: packages
 r: bioc-release
 os: linux
 
-r_packages:
-- devtools
-
 env:
 - CHECK=checkRawFiles FILE=fcs_sample_files BATCH=1
 - CHECK=checkRawFiles FILE=fcs_sample_files BATCH=2
@@ -22,7 +19,7 @@ env:
 - CHECK=checkRawFiles FILE=gene_expression_files
 
 script:
-- R -e 'devtools::install()'
+- R CMD build .
 - travis_wait 40 Rscript check.R
 
 notifications:
