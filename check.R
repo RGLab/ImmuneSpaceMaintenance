@@ -1,4 +1,3 @@
-suppressPackageStartupMessages(library(ImmuneSpaceR))
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 
 labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
