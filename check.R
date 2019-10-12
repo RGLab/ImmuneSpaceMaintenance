@@ -3,16 +3,15 @@ suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 
 labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
 labkey.url.base <- ImmuneSpaceR:::.get_env_url()
+labkey.url.path <- "/Studies/"
 
 check_type <- Sys.getenv("CHECK")
 file_type <- Sys.getenv("FILE")
 batch <- Sys.getenv("BATCH")
 
-con <- ISM$new("")
-
 if (check_type == "checkStudyCompliance") {
   msg <- testthat::capture_messages(
-    res <- con$checkStudyCompliance()
+    res <- checkStudyCompliance()
   )
 
   # Remove studies with known GEM issues that are not fixable at the moment
@@ -43,7 +42,7 @@ if (check_type == "checkStudyCompliance") {
 
 } else if (check_type == "checkRawFiles" & file_type != "") {
   msg <- testthat::capture_messages(
-    res <- con$checkRawFiles(file_type = file_type,
+    res <- checkRawFiles(file_type = file_type,
                              mc.cores = 1, # > 1 cores generates errors
                              batch = batch)
   )
@@ -57,7 +56,7 @@ if (check_type == "checkStudyCompliance") {
 
 } else if (check_type == "checkPublicVsStudySchema"){
   msg <- testthat::capture_messages(
-    res <- con$checkPublicVsStudySchema()
+    res <- checkPublicVsStudySchema()
   )
   if (any(lengths(res)) > 0){
     res <- res[ lengths(res) > 0 ]

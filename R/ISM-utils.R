@@ -1,68 +1,16 @@
-#' @include ISM.R
-NULL
-
-
-
-# PUBLIC -----------------------------------------------------------------------
-
-
-
-# PRIVATE ----------------------------------------------------------------------
-
-# Generate named list of files in either rawdata or analysis/exprs_matrices folders
-ISM$set(
-  which = "private",
-  name = ".getGEFileNames",
-  value = function(rawdata) {
-    studies <- private$.getSdyVec()
-
-    # check webdav folder for presence of rawdata
-    file_list <- lapply(studies, FUN = function(sdy) {
-      suffix <- ifelse(rawdata,
-                       "/%40files/rawdata/gene_expression?method=JSON",
-                       "/%40files/analysis/exprs_matrices?method=JSON"
-      )
-
-      dirLink <- paste0(
-        self$config$labkey.url.base,
-        "/_webdav/Studies/",
-        sdy,
-        suffix
-      )
-      files <- private$.listISFiles(dirLink)
-
-      if (rawdata) {
-        if (!is.null(files)) {
-          files <- files[ grep("\\.(tsv|csv|cel|txt)$", files, ignore.case = T) ]
-          files <- length(files) > 0
-        }
-      }
-
-      return(files)
-    })
-
-    names(file_list) <- studies
-
-    return(file_list)
+#' @export
+.listFiles <- function(link){
+  response <- NULL
+  res <- tryCatch(
+    Rlabkey:::labkey.get(link),
+    warning = function(w) return(w),
+    error = function(e) return(NULL)
+  )
+  if (!is.null(res)) {
+    tmp <- fromJSON(res, simplifyDataFrame = FALSE)
+    response <- sapply(tmp$files, function(x) {
+      return(x$text)
+    }) # basename only
   }
-)
-
-
-# Get vector of study folders
-ISM$set(
-  which = "private",
-  name = ".getSdyVec",
-  value = function() {
-    studies <- labkey.getFolders(
-      baseUrl = self$config$labkey.url.base,
-      folderPath = "/Studies/"
-    )[, 1]
-    studies <- studies[grepl("SDY[0-9]+", studies)]
-
-    studies
-  }
-)
-
-
-
-# HELPER -----------------------------------------------------------------------
+  response
+}
