@@ -35,7 +35,7 @@ env:
 
 script:
 - R CMD build .
-- R CMD install ImmuneSpaceMaintenance_0.0.0.9000.tar.gz .
+- R CMD INSTALL ImmuneSpaceMaintenance_0.0.0.9000.tar.gz
 - travis_wait 40 Rscript check.R
 
 notifications:
