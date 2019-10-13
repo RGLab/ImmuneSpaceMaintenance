@@ -15,6 +15,18 @@ string <- paste(
 labkey.netrc.file <- tempfile()
 write(string, labkey.netrc.file)
 
+useragent <- paste0(
+  "R/", R.version$major, ".", R.version$minor,
+  " (", Sys.info()["sysname"], " ", Sys.info()["machine"], ")",
+  " Rlabkey/", packageVersion("Rlabkey"))
+
+labkey.setCurlOptions(
+  ssl_verifyhost = 2,
+  sslversion = 1,
+  netrc_file = labkey.netrc.file,
+  useragent = useragent
+)
+
 labkey.url.base <- paste0("https://", machine)
 labkey.url.path <- "/Studies/"
 
