@@ -1,7 +1,7 @@
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 
 login <- Sys.getenv("ISR_login")
-pwd <- Sys.getenv("ISR_pwd")
+password <- Sys.getenv("ISR_pwd")
 machine <- Sys.getenv("ISR_machine")
 string <- paste(
   "machine", machine,
@@ -19,9 +19,7 @@ file_type <- Sys.getenv("FILE")
 batch <- Sys.getenv("BATCH")
 
 if (check_type == "checkStudyCompliance") {
-  msg <- testthat::capture_messages(
-    res <- checkStudyCompliance()
-  )
+  res <- checkStudyCompliance()
 
   # Remove studies with known GEM issues that are not fixable at the moment
   badGE <- c("SDY74",
@@ -44,32 +42,27 @@ if (check_type == "checkStudyCompliance") {
       "\n",
       length(res), " studies are not compliant: ",
       paste(names(res), collapse = ", "),
-      "\n",
-      msg
+      "\n"
     )
   }
 
 } else if (check_type == "checkRawFiles" & file_type != "") {
-  msg <- testthat::capture_messages(
-    res <- checkRawFiles(file_type = file_type,
+  res <- checkRawFiles(file_type = file_type,
                              mc.cores = 1, # > 1 cores generates errors
                              batch = batch)
-  )
 
   if (sum(!res$file_exists) > 0) {
     res <- res[!res$file_exists, c("study_accession", "file_info_name")]
     res[ , list(files_missing = .N), by = study_accession]
     print(res)
-    stop(msg[1])
+    stop()
   }
 
 } else if (check_type == "checkPublicVsStudySchema"){
-  msg <- testthat::capture_messages(
-    res <- checkPublicVsStudySchema()
-  )
+  res <- checkPublicVsStudySchema()
   if (any(lengths(res)) > 0){
     res <- res[ lengths(res) > 0 ]
     print(res)
-    stop(msg)
+    stop()
   }
 }
