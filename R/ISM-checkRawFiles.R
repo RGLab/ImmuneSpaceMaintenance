@@ -26,7 +26,9 @@ checkRawFiles = function(file_type, mc.cores, batch) {
                                 folderPath = labkey.url.path,
                                 schemaName = "study",
                                 queryName = file_type,
-                                viewName = "full")
+                                viewName = "full",
+                                colNameOpt = "rname")
+      temp <- data.table(temp)
 
       if (file_type == "fcs_control_files") {
         temp <- temp[, file_info_name := control_file]
@@ -48,7 +50,7 @@ checkRawFiles = function(file_type, mc.cores, batch) {
       }
 
       folder_link <- paste0(
-        self$config$labkey.url.base,
+        labkey.url.base,
         "/_webdav/Studies/",
         studies,
         "/%40files/rawdata/",
@@ -59,7 +61,7 @@ checkRawFiles = function(file_type, mc.cores, batch) {
       file_list <- unlist(
         mclapply(
           folder_link,
-          .listISFiles,
+          .listFiles,
           mc.cores = mc.cores
         )
       )
@@ -76,7 +78,7 @@ checkRawFiles = function(file_type, mc.cores, batch) {
 
   ..checkLinksOtherFolder <- function(folders, subdir, file_names){
     file_link <- paste0(
-      self$config$labkey.url.base,
+      labkey.url.base,
       "/_webdav/Studies/",
       folders,
       "/%40files/",
@@ -117,15 +119,15 @@ checkRawFiles = function(file_type, mc.cores, batch) {
 
   } else {
     if (file_type == "protocols") {
-      if (private$.isProject()) {
+      if (labkey.url.path == "/Studies/") {
         folders_list <- labkey.getFolders(
-          baseUrl = self$config$labkey.url.base,
-          folderPath = "/Studies/"
+          baseUrl = labkey.url.base,
+          folderPath = labkey.url.path
         )
         folders <- folders_list[, 1]
         folders <- folders[!folders %in% c("SDY_template", "Studies")]
       } else {
-        folders <- basename(self$config$labkey.url.path)
+        folders <- basename(labkey.url.path)
       }
 
       subdir <- "protocols/"

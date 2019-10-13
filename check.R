@@ -1,6 +1,8 @@
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 suppressPackageStartupMessages(library(Rlabkey))
 suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(library(jsonlite))
+suppressPackageStartupMessages(library(httr))
 
 
 login <- Sys.getenv("ISR_login")
