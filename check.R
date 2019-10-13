@@ -1,7 +1,17 @@
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 
-labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
-labkey.url.base <- ImmuneSpaceR:::.get_env_url()
+login <- Sys.getenv("ISR_login")
+pwd <- Sys.getenv("ISR_pwd")
+machine <- Sys.getenv("ISR_machine")
+string <- paste(
+  "machine", machine,
+  "login", login,
+  "password", password
+)
+labkey.netrc.file <- tempfile()
+write(string, labkey.netrc.file)
+
+labkey.url.base <- paste0("https://", machine)
 labkey.url.path <- "/Studies/"
 
 check_type <- Sys.getenv("CHECK")
