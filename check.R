@@ -1,4 +1,6 @@
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
+suppressPackageStartupMessages(library(Rlabkey))
+
 
 login <- Sys.getenv("ISR_login")
 password <- Sys.getenv("ISR_pwd")
