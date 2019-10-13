@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 suppressPackageStartupMessages(library(Rlabkey))
+suppressPackageStartupMessages(library(data.table))
 
 
 login <- Sys.getenv("ISR_login")
@@ -22,7 +23,7 @@ useragent <- paste0(
   " (", Sys.info()["sysname"], " ", Sys.info()["machine"], ")",
   " Rlabkey/", packageVersion("Rlabkey"))
 
-labkey.setCurlOptions(
+dump <- labkey.setCurlOptions(
   ssl_verifyhost = 2,
   sslversion = 1,
   netrc_file = labkey.netrc.file,
