@@ -3,6 +3,10 @@ suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
 login <- Sys.getenv("ISR_login")
 password <- Sys.getenv("ISR_pwd")
 machine <- Sys.getenv("ISR_machine")
+# For dev purposes
+machine <- ifelse(machine == "",
+                  "test.immunespace.org",
+                  machine)
 string <- paste(
   "machine", machine,
   "login", login,
