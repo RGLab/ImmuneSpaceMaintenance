@@ -3,9 +3,7 @@
 # Returns a list of data frames where TRUE in file_exists column marks files
 # that are accessible. This function is used for administrative purposes to
 # check that the raw files are properly loaded and accessible to the users.
-#' @importFrom rjson fromJSON
 #' @importFrom parallel mclapply detectCores
-#' @importFrom Rlabkey labkey.getFolders
 #' @export
 checkRawFiles = function(file_type, mc.cores, batch) {
 

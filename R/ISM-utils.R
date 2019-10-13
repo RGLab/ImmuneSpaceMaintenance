@@ -1,3 +1,5 @@
+#' @importFrom Rlabkey labkey.getFolders
+#' @importFrom jsonlite fromJSON
 #' @export
 .listFiles <- function(link){
   response <- NULL
@@ -7,7 +9,7 @@
     error = function(e) return(NULL)
   )
   if (!is.null(res)) {
-    tmp <- fromJSON(res, simplifyDataFrame = FALSE)
+    tmp <- jsonlite::fromJSON(res, simplifyDataFrame = FALSE)
     response <- sapply(tmp$files, function(x) {
       return(x$text)
     }) # basename only

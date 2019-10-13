@@ -9,7 +9,7 @@ Description: Utility Package for ImmuneSpace Maintenance.
 Imports:
   data.table,
   Rlabkey,
-  rjson,
+  jsonlite,
   parallel,
   httr
 License: GPL-2
