@@ -12,10 +12,13 @@ stages:
 jobs:
   include:
     - stage: load_dependencies
+      name: "Load Dependencies"
       script: Rscript warmup.R
     - stage: test
+      name: "Gene Expression Files"
       script: Rscript checkGEF.R
-      script: Rscript checkGEM.R
+    - script: Rscript checkGEM.R
+      name: "Gene Expression Matrices"
 
 notifications:
   email: false
