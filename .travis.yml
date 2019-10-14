@@ -5,14 +5,17 @@ cache: packages
 r: bioc-release
 os: osx
 
-before_install:
-- Rscript warmup.R
+install: skip
 
 stages:
+  - dependencies
   - test
 
 jobs:
   include:
+    - stage: dependencies
+      name: "Custom Install and Dependencies"
+      script: Rscript warmup.R
     - stage: test
       name: "Gene Expression Files"
       script: Rscript checkGEF.R
