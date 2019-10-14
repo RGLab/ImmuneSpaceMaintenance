@@ -14,13 +14,26 @@ stages:
 jobs:
   include:
     - stage: dependencies
-      name: "Custom Install and Dependencies"
+      name: "Custom Install ISM and Dependencies"
       script: Rscript warmup.R
     - stage: test
       name: "Gene Expression Files"
-      script: Rscript checkGEF.R
-    - script: Rscript checkGEM.R
+      script: Rscript Checks/checkGEF.R
+    - script: Rscript Checks/checkGEM.R
       name: "Gene Expression Matrices"
+    - script: Rscript Checks/checkProtocols.R
+      name: "Protocols"
+    - script: Rscript Checks/checkFCS_sample_1.R
+      name: "FCS Sample Files - Batch 1"
+    - script: Rscript Checks/checkFCS_sample_2.R
+      name: "FCS Sample Files - Batch 2"
+    - script: Rscript Checks/checkFCS_control_1.R
+      name: "FCS Control Files - Batch 1"
+    - script: Rscript Checks/checkFCS_control_2.R
+      name: "FCS Control Files - Batch 2"
+    - script: Rscript Checks/checkStudyCompliance.R
+      name: "Study Compliance"
+
 
 notifications:
   email: false

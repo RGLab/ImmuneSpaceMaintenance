@@ -46,9 +46,9 @@ ISM$set(
         # Batch system created as TravisCI has 50 min limit per job
         # but unlimited jobs. With increasing number of studies,
         # FCS file checking > 50 min at project level.
-        # Assuming 3 batches in this code
+        # Assuming 2 batches in this code
         if(batch != ""){
-          studies <- split(studies, cut(seq_along(studies), 3, labels = FALSE))[[batch]]
+          studies <- split(studies, cut(seq_along(studies), 2, labels = FALSE))[[batch]]
           temp <- temp[ temp$study_accession %in% studies, ]
         }
 
