@@ -23,15 +23,15 @@ jobs:
       name: "Gene Expression Matrices"
     - script: Rscript Checks/checkProtocols.R
       name: "Protocols"
-    - script: Rscript Checks/checkFCS_sample_1.R
+    - script: travis_wait 40 Rscript Checks/checkFCS_sample_1.R
       name: "FCS Sample Files - Batch 1"
-    - script: Rscript Checks/checkFCS_sample_2.R
+    - script: travis_wait 40 Rscript Checks/checkFCS_sample_2.R
       name: "FCS Sample Files - Batch 2"
-    - script: Rscript Checks/checkFCS_control_1.R
+    - script: travis_wait 40 Rscript Checks/checkFCS_control_1.R
       name: "FCS Control Files - Batch 1"
-    - script: Rscript Checks/checkFCS_control_2.R
+    - script: travis_wait 40 Rscript Checks/checkFCS_control_2.R
       name: "FCS Control Files - Batch 2"
-    - script: Rscript Checks/checkStudyCompliance.R
+    - script: travis_wait 20 Rscript Checks/checkStudyCompliance.R
       name: "Study Compliance"
 
 
