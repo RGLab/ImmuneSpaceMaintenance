@@ -5,6 +5,9 @@ cache: packages
 r: bioc-release
 os: linux
 
+r_binary_packages:
+- ncdfFlow
+
 stages:
   - load_dependencies
   - test
