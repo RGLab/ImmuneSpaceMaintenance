@@ -373,7 +373,7 @@ ISM$set(
         baseUrl = baseUrl,
         folderPath = "/Studies",
         schemaName = "study",
-        queryName = "DimRedux_assay_data",
+        queryName = "DimRedux_assay_data_computed",
         containerFilter = "CurrentAndSubfolders",
         colNameOpt = "rname"
       )
