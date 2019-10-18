@@ -5,21 +5,35 @@ cache: packages
 r: bioc-release
 os: osx
 
-r_packages:
-- devtools
-- testthat
+install: skip
 
-env:
-- CHECK=checkStudyCompliance
-- CHECK=checkRawFiles FILE=protocols
-- CHECK=checkRawFiles FILE=gene_expression_matrices
-- CHECK=checkRawFiles FILE=gene_expression_files
-- CHECK=checkRawFiles FILE=fcs_sample_files
-- CHECK=checkRawFiles FILE=fcs_control_files
+stages:
+  - dependencies
+  - test
 
-script:
-- Rscript -e "devtools::install()"
-- travis_wait 40 Rscript check.R
+jobs:
+  include:
+    - stage: dependencies
+      name: "Custom Install ISM and Dependencies"
+      script: Rscript warmup.R
+    - stage: test
+      name: "Gene Expression Files"
+      script: Rscript Checks/checkGEF.R
+    - script: Rscript Checks/checkGEM.R
+      name: "Gene Expression Matrices"
+    - script: Rscript Checks/checkProtocols.R
+      name: "Protocols"
+    - script: travis_wait 40 Rscript Checks/checkFCS_sample_1.R
+      name: "FCS Sample Files - Batch 1"
+    - script: travis_wait 40 Rscript Checks/checkFCS_sample_2.R
+      name: "FCS Sample Files - Batch 2"
+    - script: travis_wait 40 Rscript Checks/checkFCS_control_1.R
+      name: "FCS Control Files - Batch 1"
+    - script: travis_wait 40 Rscript Checks/checkFCS_control_2.R
+      name: "FCS Control Files - Batch 2"
+    - script: travis_wait 20 Rscript Checks/checkStudyCompliance.R
+      name: "Study Compliance"
+
 
 notifications:
   email: false

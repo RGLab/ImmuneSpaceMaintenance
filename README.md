@@ -1,3 +1,6 @@
-# to initialize an ISM connection
+# Initialize an ISM connection
+
+```R
 library(ImmuneSpaceMaintenance)
 con <- ISM$new(study = "", onTest = TRUE)
+```

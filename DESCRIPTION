@@ -23,7 +23,9 @@ RoxygenNote: 6.1.1
 Collate: 
     'ISM.R'
     'ISM-checkExpressionSet.R'
+    'ISM-checkPublicVsStudySchema.R'
     'ISM-checkRawFiles.R'
+    'ISM-checkRawFilesOnServer.R'
     'ISM-checkStudyCompliance.R'
     'ISM-removeOrphanGEMs.R'
     'ISM-utils.R'

@@ -14,41 +14,26 @@ NULL
 ISM$set(
   which = "public",
   name = "checkRawFiles",
-  value = function(what = c(
-    "gene_expression_files",
-    "fcs_sample_files",
-    "fcs_control_files",
-    "protocols",
-    "gene_expression_matrices"
-  ),
-  mc.cores = 1) {
-    ## HELPERS
-    ..messageResults <- function(dataset, file_exists) {
+  value = function(file_type, mc.cores, batch) {
+
+    ## ------- HELPERS --------
+    ..messageResults <- function(file_type, file_exists) {
       message(
         paste0(
           sum(file_exists),
           "/",
           length(file_exists),
           " ",
-          dataset,
+          file_type,
           " with valid links."
         )
       )
     }
 
-    ..checkLinks <- function(dataset, folder) {
-      res <- data.frame(
-        file_info_name = NULL,
-        study_accession = NULL,
-        file_link = NULL,
-        file_exists = NULL,
-        stringsAsFactors = FALSE
-      )
+    ..checkLinksRawFolder <- function(file_type, folder, batch) {
+        temp <- self$getDataset(file_type, original_view = TRUE)
 
-      if (dataset %in% self$availableDatasets$Name) {
-        temp <- self$getDataset(dataset, original_view = TRUE)
-
-        if (dataset == "fcs_control_files") {
+        if (file_type == "fcs_control_files") {
           temp <- temp[, file_info_name := control_file]
           temp <- temp[, c("pid", "sid") := data.table::tstrsplit(participant_id, "\\.")]
           temp <- temp[, study_accession := paste0("SDY", sid)]
@@ -56,18 +41,17 @@ ISM$set(
 
         temp <- temp[!is.na(file_info_name)]
         temp <- unique(temp[, list(study_accession, file_info_name)])
-
-        file_link <- paste0(
-          self$config$labkey.url.base,
-          "/_webdav/Studies/",
-          temp$study_accession,
-          "/%40files/rawdata/",
-          folder,
-          "/",
-          sapply(temp$file_info_name, URLencode)
-        )
-
         studies <- unique(temp$study_accession)
+
+        # Batch system created as TravisCI has 50 min limit per job
+        # but unlimited jobs. With increasing number of studies,
+        # FCS file checking > 50 min at project level.
+        # Assuming 2 batches in this code
+        if(batch != ""){
+          studies <- split(studies, cut(seq_along(studies), 2, labels = FALSE))[[batch]]
+          temp <- temp[ temp$study_accession %in% studies, ]
+        }
+
         folder_link <- paste0(
           self$config$labkey.url.base,
           "/_webdav/Studies/",
@@ -90,85 +74,19 @@ ISM$set(
         res <- data.frame(
           file_info_name = temp$file_info_name,
           study_accession = temp$study_accession,
-          file_link = file_link,
           file_exists = file_exists,
           stringsAsFactors = FALSE
         )
-
-        ..messageResults(dataset, res$file_exists)
-      }
-
-      res
     }
 
-
-    ## MAIN
-
-    startTimeTotal <- Sys.time()
-
-    ret <- list()
-    what <- tolower(what)
-
-    if ("gene_expression_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$gene_expression_files <- ..checkLinks(
-        "gene_expression_files",
-        "gene_expression"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("fcs_sample_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$fcs_sample_files <- ..checkLinks(
-        "fcs_sample_files",
-        "flow_cytometry"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("fcs_control_files" %in% what) {
-      startTime <- Sys.time()
-
-      ret$fcs_control_files <- ..checkLinks(
-        "fcs_control_files",
-        "flow_cytometry"
-      )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
-    }
-
-    if ("protocols" %in% what) {
-      startTime <- Sys.time()
-
-      if (private$.isProject()) {
-        folders_list <- labkey.getFolders(
-          baseUrl = self$config$labkey.url.base,
-          folderPath = "/Studies/"
-        )
-        folders <- folders_list[, 1]
-        folders <- folders[!folders %in% c("SDY_template", "Studies")]
-      } else {
-        folders <- basename(self$config$labkey.url.path)
-      }
-
+    ..checkLinksOtherFolder <- function(folders, subdir, file_names){
       file_link <- paste0(
         self$config$labkey.url.base,
         "/_webdav/Studies/",
         folders,
-        "/%40files/protocols/",
-        folders,
-        "_protocol.zip"
+        "/%40files/",
+        subdir,
+        file_names
       )
 
       file_exists <- unlist(
@@ -179,83 +97,75 @@ ISM$set(
         )
       )
 
-      ..messageResults("protocols", file_exists)
-
-      ret$protocols <- data.frame(
-        file_info_name = paste0(folders, "_protocol.zip"),
+      res <- data.frame(
+        file_info_name = file_names,
         study_accession = folders,
-        file_link = file_link,
         file_exists = file_exists,
         stringsAsFactors = FALSE
       )
-
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
     }
+    # -----------------------------
 
-    if ("gene_expression_matrices" %in% what) {
-      startTime <- Sys.time()
 
-      suppressWarnings(
-        mx <- ImmuneSpaceR:::.getLKtbl(
-          con = self,
-          schema = "assay.ExpressionMatrix.matrix",
-          query = "Runs",
-          colNameOpt = "rname"
-        )
-      )
+    ## ------- MAIN ---------------
+    startTime <- Sys.time()
 
-      if (nrow(mx) > 0) {
-        mxLinks <- paste0(
-          self$config$labkey.url.base,
-          "/_webdav/Studies/",
-          mx$folder_name,
-          "/@files/analysis/exprs_matrices/",
-          mx$name,
-          ".tsv"
-        )
+    rawFolderData <- c("gene_expression_files", "fcs_sample_files", "fcs_control_files")
 
-        file_exists <- unlist(
-          mclapply(
-            mxLinks,
-            private$.checkUrl,
-            mc.cores = mc.cores
+    if (file_type %in% rawFolderData) {
+      folder <- ifelse(file_type == "gene_expression_files",
+                       "gene_expression",
+                       "flow_cytometry")
+      res <- ..checkLinksRawFolder(file_type = file_type,
+                                   folder = folder,
+                                   batch = batch)
+
+    } else {
+      if (file_type == "protocols") {
+        if (private$.isProject()) {
+          folders_list <- labkey.getFolders(
+            baseUrl = self$config$labkey.url.base,
+            folderPath = "/Studies/"
+          )
+          folders <- folders_list[, 1]
+          folders <- folders[!folders %in% c("SDY_template", "Studies")]
+        } else {
+          folders <- basename(self$config$labkey.url.path)
+        }
+
+        subdir <- "protocols/"
+        file_names <- paste0(folders, "_protocol.zip")
+
+      } else if (file_type == "gene_expression_matrices"){
+        suppressWarnings(
+          mx <- ImmuneSpaceR:::.getLKtbl(
+            con = self,
+            schema = "assay.ExpressionMatrix.matrix",
+            query = "Runs",
+            colNameOpt = "rname"
           )
         )
 
-        ..messageResults("gene_expression_matrices", file_exists)
-
-        ret$gene_expression_matrices <- data.frame(
-          file_info_name = paste0(mx$name, ".tsv"),
-          study_accession = mx$folder_name,
-          file_link = mxLinks,
-          file_exists = file_exists,
-          stringsAsFactors = FALSE
-        )
-      } else {
-        ret$gene_expression_matrices <- data.frame(
-          file_info_name = NULL,
-          study_accession = NULL,
-          file_link = NULL,
-          file_exists = NULL,
-          stringsAsFactors = FALSE
-        )
+        folders <- mx$folder_name
+        subdir <- "/analysis/exprs_matrices/"
+        file_names <- paste0(mx$name, ".tsv")
       }
 
-      endTime <- Sys.time()
-      diff <- endTime - startTime
-      message(diff, " ", attributes(diff)$units)
+      res <- ..checkLinksOtherFolder(folders = folders,
+                                     subdir = subdir,
+                                     file_names = file_names)
     }
 
-    endTimeTotal <- Sys.time()
-    message("===========")
-    message("TOTAL TIME:")
-    totalDiff <- endTimeTotal - startTimeTotal
-    message(totalDiff, " ", attributes(totalDiff)$units)
+    ..messageResults(file_type = file_type,
+                     file_exists = res$file_exists)
 
-    ret
+    endTime <- Sys.time()
+    diff <- endTime - startTime
+    message(diff, " ", attributes(diff)$units)
+
+    res
   }
+  # --------------------------
 )
 
 # Returns a string that can be used as a shell command on RServe machines
@@ -280,62 +190,6 @@ ISM$set(
   }
 )
 
-# Compare immport.public and study schema to determine studies that should have
-# data copied over from ImmPort to Study via Immport Module "Copy Dataset"
-# and data that has been changed in Immport that should be investigated
-# prior to copying over.
-ISM$set(
-  which = "public",
-  name = "comparePublicVsStudySchema",
-  value = function() {
-    # Data from Immport schema (shown in study overview before login)
-    pub <- labkey.selectRows(baseUrl = con$config$labkey.url.base,
-                             folderPath = "/Studies/",
-                             schemaName = "immport.public",
-                             queryName = "dimstudyassay",
-                             colSelect = c("Study","Label"),
-                             colFilter = makeFilter(c("Categorylabel",
-                                                      "EQUAL",
-                                                      "Raw data files"
-                             ))
-    )
-
-    # Data in study schema (shown in study overview after login)
-    base <- "SELECT DISTINCT tmp.study_accession FROM tmp"
-
-    fcsSampleFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                        folderPath = "/Studies/",
-                                        schemaName = "study",
-                                        sql = gsub("tmp", "fcs_sample_files", base))
-    fcsSampleFiles$Label <- "FCS sample files"
-
-    fcsControlFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                         folderPath = "/Studies/",
-                                         schemaName = "study",
-                                         sql = gsub("tmp", "fcs_control_files", base))
-    fcsControlFiles$Label <- "FCS control files"
-
-    geFiles <- labkey.executeSql(baseUrl = con$config$labkey.url.base,
-                                 folderPath = "/Studies/",
-                                 schemaName = "study",
-                                 sql = gsub("tmp", "gene_expression_files", base))
-    geFiles$Label <- "Gene expression microarray data files"
-
-    priv <- rbind(fcsControlFiles, fcsSampleFiles, geFiles)
-
-    # Comparing data sets
-    pub <- pub[ pub$Study %in% unique(priv$`Study Accession`), ]
-    pub$key <- paste(pub$Study, pub$Label)
-    priv$key <- paste(priv$`Study Accession`, priv$Label)
-    inPubNotPriv <- setdiff(pub$key, priv$key)
-    inPrivNotPub <- setdiff(priv$key, pub$key)
-
-    # return
-    ret <- list(`In Public Not Private` = inPubNotPriv,
-                `In Private Not Public` = inPrivNotPub)
-  }
-)
-
 
 # PRIVATE ----------------------------------------------------------------------
 
@@ -345,7 +199,6 @@ ISM$set(
   name = ".checkUrl",
   value = function(url) {
     opts <- self$config$curlOptions
-    opts$options$netrc <- 1L
 
     res <- HEAD(url, config = opts)
 
