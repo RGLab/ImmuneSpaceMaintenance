@@ -53,8 +53,9 @@ if (check_type == "checkStudyCompliance") {
     res <- res[!res$file_exists, c("study_accession", "file_info_name")]
     res <- res[ , list(files_missing = .N), by = study_accession]
     print(res)
+    stop("Please download studies above!")
   }
-  stop(msg[1])
+  print(msg[1])
 
 } else if (check_type == "checkPublicVsStudySchema"){
   msg <- testthat::capture_messages(
