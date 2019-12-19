@@ -1,5 +1,6 @@
 suppressPackageStartupMessages(library(ImmuneSpaceR))
 suppressPackageStartupMessages(library(ImmuneSpaceMaintenance))
+suppressPackageStartupMessages(library(data.table))
 
 labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
 labkey.url.base <- ImmuneSpaceR:::.get_env_url()
@@ -27,9 +28,9 @@ if (check_type == "checkStudyCompliance") {
   res <- res[ !names(res) %in% badGE ]
 
   if (length(res) > 0) {
-    dt <- data.table::as.data.table(do.call(rbind, res))
+    dt <- as.data.table(do.call(rbind, res))
     dt[, study := names(res)]
-    data.table::setcolorder(dt, c("study", "modules"))
+    setcolorder(dt, c("study", "modules"))
     print(dt[])
 
     stop(
@@ -50,10 +51,11 @@ if (check_type == "checkStudyCompliance") {
 
   if (sum(!res$file_exists) > 0) {
     res <- res[!res$file_exists, c("study_accession", "file_info_name")]
-    res[ , list(files_missing = .N), by = study_accession]
+    res <- res[ , list(files_missing = .N), by = study_accession]
     print(res)
-    stop(msg[1])
+    stop("Please download studies above!")
   }
+  print(msg[1])
 
 } else if (check_type == "checkPublicVsStudySchema"){
   msg <- testthat::capture_messages(

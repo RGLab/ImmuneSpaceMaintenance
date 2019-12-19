@@ -71,7 +71,7 @@ ISM$set(
 
         file_exists <- temp$file_info_name %in% file_list
 
-        res <- data.frame(
+        res <- data.table(
           file_info_name = temp$file_info_name,
           study_accession = temp$study_accession,
           file_exists = file_exists,
@@ -97,7 +97,7 @@ ISM$set(
         )
       )
 
-      res <- data.frame(
+      res <- data.table(
         file_info_name = file_names,
         study_accession = folders,
         file_exists = file_exists,
