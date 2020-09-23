@@ -19,7 +19,6 @@ if (check_type == "checkStudyCompliance") {
   # Remove studies with known GEM issues that are not fixable at the moment
   badGE <- c("SDY74",
              "SDY314",
-             "SDY520",
              "SDY789",
              "SDY820",
              "SDY903",

@@ -10,8 +10,8 @@
 # Non-dependencies of package used here that must be installed
 install.packages(c("devtools","testthat"))
 
-# Install packages by binary whose source-build fails
-# install.packages("data.table", type = "binary")
+# Install ImmuneSpaceR from github to avoid CRAN issues
+devtools::install_github("rglab/immunespacer")
 
 # Installation of ISM and dependencies
-devtools::install(type="binary")
+devtools::install()
