@@ -14,4 +14,4 @@ install.packages(c("devtools","testthat"))
 # install.packages("data.table", type = "binary")
 
 # Installation of ISM and dependencies
-devtools::install(type="binary")
+#devtools::install(type="binary")
