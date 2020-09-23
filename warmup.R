@@ -10,5 +10,8 @@
 # Non-dependencies of package used here that must be installed
 install.packages(c("devtools","testthat"))
 
+# Install ImmuneSpaceR from github to avoid CRAN issues
+devtools::install_github("rglab/immunespacer")
+
 # Installation of ISM and dependencies
 devtools::install()
