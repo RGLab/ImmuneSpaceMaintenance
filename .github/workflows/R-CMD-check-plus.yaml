@@ -1,0 +1,95 @@
+# For help debugging build failures open an issue on the RStudio community with the 'github-actions' tag.
+# https://community.rstudio.com/new-topic?category=Package%20development&tags=github-actions
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: R-CMD-check-plus
+
+jobs:
+  R-CMD-check-plus:
+    runs-on: macOS-latest
+
+    name: ${{ matrix.config.check }} ${{ matrix.config.file }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {check: "checkRawFiles", file: "gene_expression_files"}
+          - {check: "checkRawFiles", file: "gene_expression_matrices"}
+          - {check: "checkRawFiles", file: "fcs_control_files"}
+          - {check: "checkRawFiles", file: "fcs_sample_files"}
+          - {check: "checkRawFiles", file: "protocols"}
+          - {check: "checkStudyCompliance"}
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      ISR_login: ${{ secrets.ISR_login }}
+      ISR_pwd: ${{ secrets.ISR_pwd }}
+
+    steps:
+      - name: Set environment for branch
+        run: |
+          if [[ $GITHUB_REF == "refs/heads/master" ]]; then
+              echo "ISR_machine=www.immunespace.org" >> "$GITHUB_ENV"
+          else
+              echo "ISR_machine=test.immunespace.org" >> "$GITHUB_ENV"
+          fi
+        shell: bash
+
+      - uses: actions/checkout@v2
+
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.config.r }}
+
+      - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+        shell: Rscript {0}
+
+      - name: R CMD check
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        run: rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")
+        shell: Rscript {0}
+
+      - name: Check
+        run: |
+          labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
+          labkey.url.base <- ImmuneSpaceR:::.get_env_url()
+          ImmuneSpaceMaintenance::check("{{ matrix.config.check }}", "{{ matrix.config.file }}")
+        shell: Rscript {0}
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ matrix.config.check }}-r${{ matrix.config.file }}-results
+          path: check
