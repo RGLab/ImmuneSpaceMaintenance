@@ -173,38 +173,39 @@ ISM$set(
       # GEM and response later timepoints do NOT need to be the same!
 
       resp <- immuneResponse[, list(study_time_collected,
-                                    study_time_collected_unit,
-                                    response = value_preferred / mean(value_preferred[study_time_collected <= 0], na.rm = TRUE)
-                                    ),
-                                by = "virus,participant_id"
-                             ]
-      resp <- resp[ !is.na(response) ]
+        study_time_collected_unit,
+        response = value_preferred / mean(value_preferred[study_time_collected <= 0], na.rm = TRUE)
+      ),
+      by = "virus,participant_id"
+      ]
+      resp <- resp[!is.na(response)]
 
       # NOTE: At least SDY180 has overlapping study_time_collected for both hours and days
       # so it is important to group by study_time_collected_unit as well. This is reflected
       # in IRP_timepoints_hai/nab.sql.
 
       # Subset to only participants with response data
-      geCohortSubs <- inputSmpls[ participantid %in% resp$participant_id ]
+      geCohortSubs <- inputSmpls[participantid %in% resp$participant_id]
       # Subset to only samples from studies where there is data from multiple cohorts at
       # a given timepoint
       geCohortSubs <- geCohortSubs[, .SD[length(unique(cohort)) > 1],
-                                     by = .(study, study_time_collected, study_time_collected_unit)
-                                   ]
+        by = .(study, study_time_collected, study_time_collected_unit)
+      ]
       # Subset to only samples where there is baseline data and data from other timepoints
       geCohortSubs <- geCohortSubs[, .SD[length(unique(study_time_collected)) > 1 & 0 %in% unique(study_time_collected)],
-                                     by = .(study, cohort, study_time_collected_unit)
-                                   ]
+        by = .(study, cohort, study_time_collected_unit)
+      ]
       compDF$IRP_implied <- rownames(compDF) %in% unique(geCohortSubs$study)
 
       # Get IrpTimepoints
       # TODO:  Change to "IRP_missing" to be consistent, and only include when noncompliant (or missing?)
       # TODO:  Determine if this field is necessary
       studyTimepoints <- geCohortSubs[, list(timepoints = paste(sort(unique(study_time_collected)),
-                                                                collapse = ",")),
-                                        by = .(study)
-                                      ]
-      compDF$IrpTimepoints <- studyTimepoints$timepoints[ match(rownames(compDF), studyTimepoints$study) ]
+        collapse = ","
+      )),
+      by = .(study)
+      ]
+      compDF$IrpTimepoints <- studyTimepoints$timepoints[match(rownames(compDF), studyTimepoints$study)]
 
       # DGEA - Differential Expression Analysis
       # --------
@@ -234,7 +235,7 @@ ISM$set(
         showHidden = TRUE
       )
 
-      existGEA$sdy <- containers$`Display Name`[ match(existGEA$container, containers$`Entity Id`)]
+      existGEA$sdy <- containers$`Display Name`[match(existGEA$container, containers$`Entity Id`)]
 
       gea <- suppressWarnings(lapply(studiesWithGems, FUN = function(sdy) {
         # TODO:  use inputSmpls instead and subset
@@ -245,14 +246,14 @@ ISM$set(
         # 1. Remove all arm_name * study_time_collected with less than 4 replicates
         # otherwise predictive modeling cannot work
         impliedGEA[, subs := length(unique(participantid)),
-                     by = .(cohort, study_time_collected, study_time_collected_unit)
-                   ]
-        impliedGEA <- impliedGEA[ subs > 3 ]
+          by = .(cohort, study_time_collected, study_time_collected_unit)
+        ]
+        impliedGEA <- impliedGEA[subs > 3]
 
         # 2. Check for baseline within each arm_name and then filter out baseline
-        impliedGEA[, baseline := any(study_time_collected <= 0), by = .(cohort) ]
-        impliedGEA <- impliedGEA[ baseline == TRUE ] # filter out arms with no baseline
-        impliedGEA <- impliedGEA[ study_time_collected > 0 ] # remove baseline
+        impliedGEA[, baseline := any(study_time_collected <= 0), by = .(cohort)]
+        impliedGEA <- impliedGEA[baseline == TRUE] # filter out arms with no baseline
+        impliedGEA <- impliedGEA[study_time_collected > 0] # remove baseline
 
         # 3. Generate key
 
@@ -260,13 +261,13 @@ ISM$set(
 
         # 4. Summarize by arm_name * study_time_collected for number of subs and key
         smryGEA <- impliedGEA[, list(key = unique(key), subs = unique(subs)),
-                                by = .(cohort_type, study_time_collected, study_time_collected_unit)
-                              ]
+          by = .(cohort_type, study_time_collected, study_time_collected_unit)
+        ]
 
         # -------------------------------------------
 
         # Get current GEA and compare
-        currGEA <- existGEA[ existGEA$sdy == sdy, ]
+        currGEA <- existGEA[existGEA$sdy == sdy, ]
         currGEA$key <- paste(currGEA$arm_name, currGEA$coefficient)
 
         if (nrow(smryGEA) > 0) {
@@ -288,7 +289,7 @@ ISM$set(
       gea <- data.frame(do.call(rbind, gea), stringsAsFactors = FALSE)
       compDF[studiesWithGems, "DGEA_implied"] <- gea$DGEA_implied
       compDF[studiesWithGems, "DGEA_missing"] <- gea$DGEA_missing
-      compDF$DGEA_implied[ is.na(compDF$DGEA_implied) ] <- FALSE
+      compDF$DGEA_implied[is.na(compDF$DGEA_implied)] <- FALSE
       compDF$DGEA_implied <- as.logical(compDF$DGEA_implied)
 
       # GSEA - Gene set enrichment analysis
@@ -489,7 +490,7 @@ ISM$set(
 
       colnames(compliant) <- modules
       rownames(compliant) <- rownames(compDF)
-      nonCompliantStudies <- rownames(compliant[ !apply(compliant, 1, all), ])
+      nonCompliantStudies <- rownames(compliant[!apply(compliant, 1, all), ])
 
       summaryList <- lapply(nonCompliantStudies, function(study) {
         sl <- list(
@@ -576,4 +577,3 @@ ISM$set(
 
   sdys
 }
-
