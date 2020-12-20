@@ -86,10 +86,15 @@ jobs:
         shell: Rscript {0}
 
       - name: Check
+        env:
+          CHECK: {{ matrix.config.check }}
+          FILE: {{ matrix.config.file }}
         run: |
           labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
           labkey.url.base <- ImmuneSpaceR:::.get_env_url()
-          ImmuneSpaceMaintenance::check("{{ matrix.config.check }}", "{{ matrix.config.file }}")
+          check_type <- Sys.getenv("CHECK")
+          file_type <- Sys.getenv("FILE")
+          ImmuneSpaceMaintenance::check(check_type, file_type)
         shell: Rscript {0}
 
       - name: Upload check results
