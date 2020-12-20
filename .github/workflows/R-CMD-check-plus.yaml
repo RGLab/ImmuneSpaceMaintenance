@@ -87,8 +87,8 @@ jobs:
 
       - name: Check
         env:
-          CHECK: {{ matrix.config.check }}
-          FILE: {{ matrix.config.file }}
+          CHECK: ${{ matrix.config.check }}
+          FILE: ${{ matrix.config.file }}
         run: |
           labkey.netrc.file <- ImmuneSpaceR:::.get_env_netrc()
           labkey.url.base <- ImmuneSpaceR:::.get_env_url()
