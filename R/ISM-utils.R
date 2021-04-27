@@ -19,8 +19,8 @@ ISM$set(
     # check webdav folder for presence of rawdata
     file_list <- lapply(studies, FUN = function(sdy) {
       suffix <- ifelse(rawdata,
-                       "/%40files/rawdata/gene_expression?method=JSON",
-                       "/%40files/analysis/exprs_matrices?method=JSON"
+        "/%40files/rawdata/gene_expression?method=JSON",
+        "/%40files/analysis/exprs_matrices?method=JSON"
       )
 
       dirLink <- paste0(
@@ -33,7 +33,7 @@ ISM$set(
 
       if (rawdata) {
         if (!is.null(files)) {
-          files <- files[ grep("\\.(tsv|csv|cel|txt)$", files, ignore.case = T) ]
+          files <- files[grep("\\.(tsv|csv|cel|txt)$", files, ignore.case = T)]
           files <- length(files) > 0
         }
       }

@@ -1,6 +1,6 @@
 Package: ImmuneSpaceMaintenance
 Title: Utility Package for ImmuneSpace Maintenance
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R:
     person("ImmuneSpace Maintainer",
            email = "immunespace@gmail.com",
@@ -15,11 +15,14 @@ Imports:
   Rlabkey,
   rjson,
   parallel,
-  httr
+  httr,
+  testthat
+Remotes:
+  RGLab/ImmuneSpaceR
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Collate: 
     'ISM.R'
     'ISM-checkExpressionSet.R'
@@ -29,3 +32,4 @@ Collate:
     'ISM-checkStudyCompliance.R'
     'ISM-removeOrphanGEMs.R'
     'ISM-utils.R'
+    'check.R'
