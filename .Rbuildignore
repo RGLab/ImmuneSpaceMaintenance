@@ -1,5 +1,3 @@
 ^ImmuneSpaceMaintenance\.Rproj$
 ^\.Rproj\.user$
-^\.travis\.yml$
-^check\.R$
 ^\.github$

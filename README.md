@@ -1,8 +1,10 @@
 # ImmuneSpace Maintenance Tasks
 
 <!-- badges: start -->
-  [![R-CMD-check-plus](https://github.com/RGLab/ImmuneSpaceMaintenance/workflows/R-CMD-check-plus/badge.svg)](https://github.com/RGLab/ImmuneSpaceMaintenance/actions)
-  <!-- badges: end -->
+| [Production](https://www.immunespace.org/) | [Test](https://test.immunespace.org/) |
+|-----|-----|
+| [![IS-Maintenance](https://github.com/RGLab/ImmuneSpaceMaintenance/workflows/IS-Maintenance/badge.svg?branch=main)](https://github.com/RGLab/ImmuneSpaceMaintenance/actions?query=branch:main) | [![IS-Maintenance](https://github.com/RGLab/ImmuneSpaceMaintenance/workflows/IS-Maintenance/badge.svg?branch=dev)](https://github.com/RGLab/ImmuneSpaceMaintenance/actions?query=branch:dev) |
+<!-- badges: end -->
 
 ## Installation
 
