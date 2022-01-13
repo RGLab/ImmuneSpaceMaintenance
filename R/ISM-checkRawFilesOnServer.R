@@ -7,7 +7,7 @@ ISM$set(
   which = "public",
   name = "checkRawFilesOnServer",
   value = function(file_type, summarizeByStudy = TRUE) {
-    if (file_type == "") {
+    if (file_type == "gene_expression_files") {
       dir_type <- "gene_expression"
     } else if (file_type %in% c("fcs_sample_files", "fcs_control_files")) {
       dir_type <- "flow_cytometry"
