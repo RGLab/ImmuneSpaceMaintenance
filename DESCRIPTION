@@ -1,6 +1,6 @@
 Package: ImmuneSpaceMaintenance
 Title: Utility Package for ImmuneSpace Maintenance
-Version: 0.0.1
+Version: 0.0.2
 Authors@R:
     person("ImmuneSpace Maintainer",
            email = "immunespace@gmail.com",
